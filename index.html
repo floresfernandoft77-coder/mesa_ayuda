@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesa de Ayuda - IESTP</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f5f9;color:#243247}
+header{background:#173b63;color:#fff;padding:22px 16px}
+main{width:min(900px,94%);margin:0 auto}
+section{background:#fff;border-radius:12px;padding:20px;margin:18px 0;box-shadow:0 3px 12px #172b4d12}
+label{display:block;margin-top:10px;font-weight:bold}
+input,textarea{width:100%;padding:9px;border:1px solid #aebdce;border-radius:6px;font:inherit}
+button{margin-top:14px;padding:10px 18px;border:0;border-radius:7px;background:#1769aa;color:#fff;font-weight:bold;cursor:pointer}
+button:hover{background:#104f83}
+li{padding:10px 0;border-bottom:1px solid #dce3eb;list-style:none}
+ul{padding:0;margin:0}
+small{color:#58677a}
+#msg{margin-top:10px;font-weight:bold}
+</style>
+</head>
+<body>
+<header><main><h1>Mesa de Ayuda</h1><p>Registro y consulta de tickets (datos de demostración)</p></main></header>
+<main>
+<section>
+<h2>Registrar ticket</h2>
+<label for="solicitante">Solicitante (nombre ficticio)</label>
+<input id="solicitante" maxlength="80">
+<label for="titulo">Título</label>
+<input id="titulo" maxlength="120">
+<label for="descripcion">Descripción</label>
+<textarea id="descripcion" rows="3"></textarea>
+<button id="btnGuardar" type="button">Registrar ticket</button>
+<p id="msg" role="status"></p>
+</section>
+<section>
+<h2>Tickets registrados</h2>
+<ul id="lista"><li>Cargando…</li></ul>
+</section>
+</main>
+<script>
+const msg=document.getElementById("msg");
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML;}
+async function cargar(){
+  const ul=document.getElementById("lista");
+  try{
+    const r=await fetch("/api/tickets");           // ruta RELATIVA, no localhost
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const datos=await r.json();
+    ul.innerHTML=datos.length?datos.map(t=>
+      "<li><strong>#"+t.id+" "+esc(t.titulo)+"</strong> <small>("+esc(t.estado)+")</small><br>"+
+      esc(t.descripcion)+"<br><small>"+esc(t.solicitante)+"</small></li>").join("")
+      :"<li>Aún no hay tickets. Registra el primero.</li>";
+  }catch(e){ul.innerHTML="<li>No se pudo cargar la lista. Revisa los logs del servicio.</li>";}
+}
+document.getElementById("btnGuardar").addEventListener("click",async()=>{
+  const body={solicitante:solicitante.value.trim(),titulo:titulo.value.trim(),descripcion:descripcion.value.trim()};
+  if(!body.solicitante||!body.titulo||!body.descripcion){msg.textContent="Completa todos los campos.";return;}
+  try{
+    const r=await fetch("/api/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error();
+    msg.textContent="Ticket registrado.";
+    solicitante.value=titulo.value=descripcion.value="";
+    cargar();
+  }catch(e){msg.textContent="No se pudo registrar el ticket.";}
+});
+cargar();
+</script>
+</body>
+</html>

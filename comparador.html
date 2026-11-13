@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador de plataformas - Mesa de Ayuda</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f5f9;color:#243247;line-height:1.5}
+header{padding:28px 16px;background:#173b63;color:#fff}
+.contenedor{width:min(1100px,94%);margin:0 auto}
+.etiqueta{font-size:.85rem;font-weight:bold;letter-spacing:.04em}
+h1{margin-bottom:8px}
+.panel,.aviso{margin:18px 0;padding:20px;background:#fff;border-radius:12px;box-shadow:0 3px 12px #172b4d12}
+.aviso{border-left:6px solid #e6a700;background:#fff9e6}
+.tabla-contenedor{overflow-x:auto}
+table{width:100%;min-width:850px;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid #dce3eb;text-align:left;vertical-align:middle}
+th{background:#eaf1f8}
+td small{display:block;color:#58677a;margin-top:3px}
+select{width:100%;min-width:125px;padding:8px;border:1px solid #aebdce;border-radius:6px;background:#fff;font-size:.95rem}
+button{margin-top:16px;padding:11px 18px;border:0;border-radius:7px;background:#1769aa;color:#fff;font-size:1rem;font-weight:bold;cursor:pointer}
+button:hover{background:#104f83}
+.tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.tarjeta{padding:16px;border:1px solid #dce3eb;border-radius:10px;background:#fff}
+.puntaje{display:flex;justify-content:space-between;gap:10px;font-weight:bold}
+.barra-fondo{height:12px;margin:12px 0;overflow:hidden;border-radius:20px;background:#e4eaf1}
+.barra{width:0;height:100%;background:#1769aa;transition:width .3s}
+#barra-paas{background:#218739}
+#recomendacion{margin-top:18px;padding:14px;border-radius:8px;background:#eaf5ed;font-weight:bold}
+.nota{border-left:6px solid #1769aa;background:#f0f7ff}
+footer{padding:20px 0;color:#58677a;font-size:.9rem}
+@media (max-width:600px){h1{font-size:1.5rem}.panel,.aviso{padding:15px}}
+</style>
+</head>
+<body>
+<header><div class="contenedor">
+<span class="etiqueta">GESTIÓN DE SERVICIOS DE TI · SEMANA 12</span>
+<h1>¿Dónde alojaremos nuestra Mesa de Ayuda?</h1>
+<p>Comparador didáctico de alternativas de alojamiento.</p>
+</div></header>
+<main class="contenedor">
+<section class="aviso"><strong>Importante:</strong> esta actividad compara opciones y ayuda a tomar una decisión. No publica la aplicación ni la conecta a internet.</section>
+<section class="panel">
+<h2>1. ¿Cómo se califica?</h2>
+<ul>
+<li><strong>1:</strong> poco favorable para el proyecto.</li>
+<li><strong>2:</strong> parcialmente favorable; hay que verificar algo.</li>
+<li><strong>3:</strong> favorable para el proyecto.</li>
+</ul>
+<p>El peso muestra la importancia del criterio. El sistema calcula: <strong>calificación × peso</strong>.</p>
+<p>Los puntajes iniciales ya están ajustados al caso (poca experiencia, presupuesto limitado). Cámbienlos según lo que investigue el equipo.</p>
+</section>
+<section class="panel">
+<h2>2. Comparar alternativas</h2>
+<div class="tabla-contenedor">
+<table id="tablaComparacion">
+<thead><tr><th>Criterio</th><th>Peso</th><th>XAMPP local</th><th>PaaS</th><th>VPS</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<button type="button" id="btnCalcular">Calcular comparación</button>
+</section>
+<section class="panel">
+<h2>3. Resultado</h2>
+<div class="tarjetas">
+<article class="tarjeta"><h3>XAMPP local</h3><p class="puntaje"><span id="puntaje-local">—</span><span id="porcentaje-local"></span></p><div class="barra-fondo"><div class="barra" id="barra-local"></div></div><small>Conveniente para desarrollar y probar en el laboratorio.</small></article>
+<article class="tarjeta"><h3>PaaS</h3><p class="puntaje"><span id="puntaje-paas">—</span><span id="porcentaje-paas"></span></p><div class="barra-fondo"><div class="barra" id="barra-paas"></div></div><small>Puede facilitar el alojamiento, pero hay que revisar la conexión a MySQL.</small></article>
+<article class="tarjeta"><h3>VPS</h3><p class="puntaje"><span id="puntaje-vps">—</span><span id="porcentaje-vps"></span></p><div class="barra-fondo"><div class="barra" id="barra-vps"></div></div><small>Permite configurar más cosas, pero requiere más administración.</small></article>
+</div>
+<p id="recomendacion" aria-live="polite"></p>
+</section>
+<section class="panel nota">
+<h2>¿Y la opción SaaS?</h2>
+<p>Un SaaS es un sistema que ya está construido y se utiliza como servicio. No es lo mismo que subir nuestra aplicación propia. Si se considera, debe analizarse como otra decisión: contratar un sistema existente en lugar de publicar el proyecto de los estudiantes.</p>
+</section>
+<footer>Recurso educativo de la actividad práctica 5. Las puntuaciones iniciales son ejemplos y no representan una evaluación universal de los proveedores.</footer>
+</main>
+<script>
+const opciones=[{id:"local",nombre:"XAMPP local"},{id:"paas",nombre:"PaaS"},{id:"vps",nombre:"VPS"}];
+const criterios=[
+{n:"Acceso desde internet",d:"¿Se puede usar fuera del laboratorio?",p:3,v:{local:1,paas:3,vps:3}},
+{n:"Compatibilidad con la aplicación y MySQL",d:"¿Admite el backend elegido y cómo se conecta la base de datos?",p:3,v:{local:3,paas:2,vps:3}},
+{n:"Facilidad para poner en marcha el servicio",d:"¿Cuánto trabajo de configuración requiere?",p:2,v:{local:3,paas:3,vps:1}},
+{n:"Administración, seguridad y respaldos",d:"¿Cuánto debe encargarse el equipo de mantener el servicio?",p:2,v:{local:1,paas:2,vps:1}},
+{n:"Costos para el proyecto",d:"¿Se ajusta al presupuesto disponible?",p:2,v:{local:3,paas:2,vps:1}}
+];
+const etiquetas={1:"1 - Poco favorable",2:"2 - Parcial",3:"3 - Favorable"};
+const tbody=document.querySelector("#tablaComparacion tbody");
+criterios.forEach(function(c){
+  const tr=document.createElement("tr");tr.dataset.peso=c.p;
+  let html='<td><strong>'+c.n+'</strong><small>'+c.d+'</small></td><td>'+c.p+'</td>';
+  opciones.forEach(function(o){
+    html+='<td><select class="'+o.id+'" aria-label="'+c.n+', '+o.nombre+'">';
+    [1,2,3].forEach(function(k){html+='<option value="'+k+'"'+(c.v[o.id]===k?' selected':'')+'>'+etiquetas[k]+'</option>';});
+    html+='</select></td>';
+  });
+  tr.innerHTML=html;tbody.appendChild(tr);
+});
+function calcularComparacion(){
+  const totales={local:0,paas:0,vps:0};let max=0;
+  document.querySelectorAll("#tablaComparacion tbody tr").forEach(function(fila){
+    const peso=Number(fila.dataset.peso);max+=peso*3;
+    opciones.forEach(function(o){totales[o.id]+=Number(fila.querySelector("select."+o.id).value)*peso;});
+  });
+  opciones.forEach(function(o){
+    const pct=Math.round(totales[o.id]/max*100);
+    document.getElementById("puntaje-"+o.id).textContent=totales[o.id]+" / "+max+" puntos";
+    document.getElementById("porcentaje-"+o.id).textContent=pct+"%";
+    document.getElementById("barra-"+o.id).style.width=pct+"%";
+  });
+  const mayor=Math.max(totales.local,totales.paas,totales.vps);
+  const g=opciones.filter(function(o){return totales[o.id]===mayor;});
+  const msg=g.length===1?"La opción con mayor puntaje es "+g[0].nombre+" ("+mayor+" de "+max+")."
+    :"Hay un empate entre "+g.map(function(o){return o.nombre;}).join(", ")+" ("+mayor+" de "+max+").";
+  document.getElementById("recomendacion").textContent=msg+" El resultado orienta la decisión, pero el equipo debe justificarla y verificar las condiciones reales de la plataforma.";
+}
+document.getElementById("btnCalcular").addEventListener("click",calcularComparacion);
+document.querySelectorAll("#tablaComparacion select").forEach(function(s){s.addEventListener("change",calcularComparacion);});
+calcularComparacion();
+</script>
+</body>
+</html>
